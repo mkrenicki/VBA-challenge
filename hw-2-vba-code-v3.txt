@@ -1,0 +1,143 @@
+Sub StockData()
+
+'Implement on multiple worksheets
+For Each ws In Worksheets
+
+    Dim WorksheetName As String
+    WorksheetName = ws.Name
+
+    'Define variable dimensions
+
+    Dim OpenPrice As Double
+    Dim ClosePrice As Double
+    Dim r As Double
+
+    Dim OutputTableRow As Double
+
+    'Assign starter values (positions)
+    OutputTableRow = 2
+    r = 2
+
+    'Define relationship between stock symbols in Column 1 and where they will belong in Column 9. This will explicitly give us the first ticker symbol in our outputs table.
+    ws.Cells(OutputTableRow, 9).Value = ws.Cells(OutputTableRow, 1).Value
+
+    'Define Opening Price. This will explicitly give us the first open price on first ticker.
+    OpenPrice = ws.Cells(r, 3).Value
+
+    'Implement last row finder formula to get the whole dataset included vertically
+    LastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+
+    'Initiate For Loop to cycle through data vertically
+    For r = 2 To LastRow
+
+        'When Output ticker symbol matches input, sum up all volume and capture close price
+        If ws.Cells(r, 1).Value = ws.Cells(OutputTableRow, 9).Value Then
+        
+            TotalVolume = TotalVolume + ws.Cells(r, 7).Value
+            
+            'Since runs top to bottom of sheet, will capture last value of a given ticker symbol
+            ClosePrice = ws.Cells(r, 6).Value
+
+            Else
+     
+            'Calculate difference between close and open prices and deposit in column #10
+            ws.Cells(OutputTableRow, 10).Value = ClosePrice - OpenPrice
+
+            If ClosePrice <= 0 And OpenPrice > 0 Then
+            
+                ws.Cells(OutputTableRow, 11).Value = 0
+                
+                ElseIf OpenPrice <= 0 Then
+                    
+                    ws.Cells(OutputTableRow, 10).Value = " "
+                    
+                Else
+                    
+                'Calculate percent change, deposit into column #11
+
+                ws.Cells(OutputTableRow, 11).Value = (ClosePrice / OpenPrice) - 1
+                    
+            End If
+            
+            'Implement formatting required on percent change column
+                
+            ws.Cells(OutputTableRow, 11).Style = "Percent"
+            
+            'Implement formatting required on $ change column
+                        
+            If ws.Cells(OutputTableRow, 10).Value < 0 Then
+                                
+                ws.Cells(OutputTableRow, 10).Interior.ColorIndex = 3
+                                    
+                Else
+                                
+                ws.Cells(OutputTableRow, 10).Interior.ColorIndex = 4
+                    
+            End If
+            
+            'Define output location for Total Volume on a given stock
+                
+            ws.Cells(OutputTableRow, 12).Value = TotalVolume
+
+        
+            'Have row counter on outputs advance by 1.
+
+            OutputTableRow = OutputTableRow + 1
+        
+            'Reset variables for successive iterations
+
+            OpenPrice = ws.Cells(r, 3).Value
+
+            TotalVolume = ws.Cells(r, 7).Value
+
+            ws.Cells(OutputTableRow, 9).Value = ws.Cells(r, 1).Value
+            
+            TotalVolume = 0
+
+        End If
+
+    Next r
+
+    'Calculations if outside of original if statement
+    ws.Cells(OutputTableRow, 10).Value = ClosePrice - OpenPrice
+
+    If ClosePrice <= 0 And OpenPrice > 0 Then
+            
+        ws.Cells(OutputTableRow, 11).Value = 0
+        
+        ElseIf OpenPrice <= 0 Then
+                    
+        ws.Cells(OutputTableRow, 10).Value = " "
+                    
+        Else
+
+        ws.Cells(OutputTableRow, 11).Value = (ClosePrice / OpenPrice) - 1
+                    
+    End If
+    
+    'Formatting
+    ws.Cells(OutputTableRow, 11).Style = "Percent"
+                        
+    If ws.Cells(OutputTableRow, 10).Value < 0 Then
+                                
+        ws.Cells(OutputTableRow, 10).Interior.ColorIndex = 3
+                                    
+        Else
+                                
+        ws.Cells(OutputTableRow, 10).Interior.ColorIndex = 4
+                    
+    End If
+    
+    'Assign output location for Total Volume Calcs
+    ws.Cells(OutputTableRow, 12).Value = TotalVolume
+
+    'Add column headers for outputs
+    ws.Cells(1, 9).Value = "Ticker Symbol"
+    ws.Cells(1, 10).Value = "Yearly Change"
+    ws.Cells(1, 11).Value = "Percent Change"
+    ws.Cells(1, 12).Value = "Total Volume"
+
+Next ws
+
+End Sub
+
